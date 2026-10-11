@@ -2,14 +2,14 @@
 
 # Workbench — AI Coding Agent
 
-> **Learning Journey Projects · Boot.dev**
+> **Learning Journey Project · Boot.dev**
 > A student project developed through the Boot.dev curriculum and extended through hands-on practice.
 
 **A command-line agent that can inspect, edit, and run a local calculator project.**
 
 Give the agent a task in plain language. It sends the conversation to OpenRouter, executes supported tool calls inside a configured workspace (default: `calculator/`), and returns the results to the model until it produces a final response or reaches its 20-iteration limit.
 
-## One-line launch
+## <img src="readme-assets/run.svg" width="24" height="24" alt=""> One-line launch
 
 ```bash
 ./launch "Explain how the calculator works" --read-only
@@ -38,7 +38,7 @@ uv run main.py "Evaluate 3 + 5 using the calculator" --verbose
 
 The default model is `openrouter/free`; set `OPENROUTER_MODEL` or pass `--model` to choose another. Availability and request limits depend on the provider. Verbose mode prints step counts, token usage when supplied, and tool names.
 
-## Work on your own project
+## <img src="readme-assets/code.svg" width="24" height="24" alt=""> Work on your own project
 
 ```bash
 uv run main.py "Explain this project" --workspace ../folio-static-site --read-only
@@ -50,7 +50,7 @@ uv run main.py "Inspect the calculator" --read-only --transcript conversation.js
 
 Transcripts are opt-in JSON conversations, including tool results and file contents. Keep them private when inspecting sensitive projects. Interrupted or failed runs also save the available conversation. Provider failures and exhausted step limits return a nonzero exit status; Ctrl+C returns 130.
 
-## Run the automated checks
+## <img src="readme-assets/verify.svg" width="24" height="24" alt=""> Run the automated checks
 
 ```bash
 uv run python -m unittest discover -s tests -v
