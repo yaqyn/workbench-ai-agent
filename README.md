@@ -3,13 +3,17 @@
 # Workbench — AI Coding Agent
 
 > **Learning Journey Project · Boot.dev**
-> A student project developed through the Boot.dev curriculum and extended through hands-on practice.
+> Developed through the Boot.dev curriculum and extended through independent work.
 
 **A command-line agent that can inspect, edit, and run a local calculator project.**
 
 Give the agent a task in plain language. It sends the conversation to OpenRouter, executes supported tool calls inside a configured workspace (default: `calculator/`), and returns the results to the model until it produces a final response or reaches its 20-iteration limit.
 
-## <img src="readme-assets/run.svg" width="24" height="24" alt=""> One-line launch
+**Requirements:** Python 3.13+, uv, and an OpenRouter API key for model requests. Python execution can access the host; workspace file checks do not provide an operating-system sandbox.
+
+[Run a read-only task](#quick-start) · [Read the tool boundaries](#workspace-configuration-and-boundaries)
+
+## <img src="readme-assets/icons/launch.svg" width="24" height="24" alt=""> Quick start
 
 ```bash
 ./launch "Explain how the calculator works" --read-only
@@ -17,7 +21,14 @@ Give the agent a task in plain language. It sends the conversation to OpenRouter
 
 The launcher uses uv to prepare the Python environment automatically. Run `./launch` without arguments to enter a task interactively. All CLI options work with the launcher; it can also be invoked by absolute path from another directory. Set `OPENROUTER_API_KEY` in your environment or the project `.env` before sending a task.
 
-## <img src="readme-assets/run.svg" width="24" height="24" alt=""> Give it a task
+## <img src="readme-assets/icons/features.svg" width="24" height="24" alt=""> Features
+
+- Inspect and edit files through workspace-scoped tools.
+- Run Python with bounded execution time and output.
+- Use read-only mode for inspection and save optional transcripts.
+- Examine tool behavior without a provider request using the bundled calculator.
+
+## <img src="readme-assets/icons/installation.svg" width="24" height="24" alt=""> Installation
 
 Requires **Python 3.13+**, **uv**, and an **OpenRouter API key**.
 
@@ -38,7 +49,7 @@ uv run main.py "Evaluate 3 + 5 using the calculator" --verbose
 
 The default model is `openrouter/free`; set `OPENROUTER_MODEL` or pass `--model` to choose another. Availability and request limits depend on the provider. Verbose mode prints step counts, token usage when supplied, and tool names.
 
-## <img src="readme-assets/code.svg" width="24" height="24" alt=""> Work on your own project
+## <img src="readme-assets/icons/security.svg" width="24" height="24" alt=""> Workspace configuration and boundaries
 
 ```bash
 uv run main.py "Explain this project" --workspace ../folio-static-site --read-only
@@ -50,16 +61,21 @@ uv run main.py "Inspect the calculator" --read-only --transcript conversation.js
 
 Transcripts are opt-in JSON conversations, including tool results and file contents. Keep them private when inspecting sensitive projects. Interrupted or failed runs also save the available conversation. Provider failures and exhausted step limits return a nonzero exit status; Ctrl+C returns 130.
 
-## <img src="readme-assets/verify.svg" width="24" height="24" alt=""> Run the automated checks
+## <img src="readme-assets/icons/usage.svg" width="24" height="24" alt=""> Calculator example
+
+The bundled calculator works independently of the model:
 
 ```bash
-uv run python -m unittest discover -s tests -v
-uv run calculator/tests.py
+uv run calculator/main.py "3 + 5 * 2"
 ```
 
-These checks need no API key and make no provider requests. They cover argument validation, workspace traversal and symlinks, read-only enforcement, Python execution, tool conversations, empty responses, and step limits.
+![Actual JSON output from the bundled calculator](readme-assets/calculator.png)
 
-## <img src="readme-assets/design.svg" width="24" height="24" alt=""> A conversation with tools
+[Calculator documentation](calculator/README.md) · [Tool definitions](functions/) · [System prompt](prompts.py)
+
+## <img src="readme-assets/icons/architecture.svg" width="24" height="24" alt=""> Architecture
+
+The agent loop sends conversation history to the model, dispatches supported tool calls, and returns tool results for the next step.
 
 ![Agent workflow: prompt, model, tools, response](readme-assets/workflow.svg)
 
@@ -72,22 +88,19 @@ These checks need no API key and make no provider requests. They cover argument 
 
 `call_function.py` validates tool arguments and dispatches requests into the configured workspace. The default calculator path is anchored to the project, so launching from another directory works. File tools resolve symlinks and reject paths outside that directory. Python execution is a subprocess, so these checks are not an operating-system sandbox. Run the course agent against disposable local work you are comfortable letting it modify.
 
-## <img src="readme-assets/code.svg" width="24" height="24" alt=""> Explore without an API request
-
-The bundled calculator works independently of the model:
+## <img src="readme-assets/icons/verification.svg" width="24" height="24" alt=""> Verification
 
 ```bash
-uv run calculator/main.py "3 + 5 * 2"
+uv run python -m unittest discover -s tests -v
+uv run calculator/tests.py
 ```
 
-![Actual JSON output from the bundled calculator](readme-assets/calculator.png)
+These checks need no API key and make no provider requests. They cover argument validation, workspace traversal and symlinks, read-only enforcement, Python execution, tool conversations, empty responses, and step limits.
 
-[Calculator documentation](calculator/README.md) · [Tool definitions](functions/) · [System prompt](prompts.py)
-
-## <img src="readme-assets/learn.svg" width="24" height="24" alt=""> What this project teaches
+## <img src="readme-assets/icons/learning.svg" width="24" height="24" alt=""> Learning context
 
 Function schemas, tool dispatch, conversation history, subprocess execution, and a bounded agent loop. The root `test_*.py` files are legacy manual tool demonstrations; some write files or run code. The automated tests in `tests/` use temporary workspaces and simulated provider responses.
 
 ---
 
-Built by **[Abdulrahman M. Yaqyn](https://yaqyn.github.io/folio-static-site/)** through the [Boot.dev](https://www.boot.dev) curriculum.
+Built by **[Abdulrahman M. Yaqyn](https://yaqyn.github.io/folio-static-site/)**.
