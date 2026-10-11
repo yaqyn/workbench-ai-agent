@@ -6,7 +6,7 @@
 
 Give the agent a task in plain language. It sends the conversation to OpenRouter, executes supported tool calls inside a configured workspace (default: `calculator/`), and returns the results to the model until it produces a final response or reaches its 20-iteration limit.
 
-**Requirements:** Python 3.13+, uv, and an OpenRouter API key for model requests. Python execution can access the host; workspace file checks do not provide an operating-system sandbox.
+Model requests require your own OpenRouter API key. Python execution can access the host; workspace file checks do not provide an operating-system sandbox.
 
 [Run a read-only task](#-quick-start) · [Read the tool boundaries](#-workspace-configuration-and-boundaries)
 
@@ -18,6 +18,8 @@ Give the agent a task in plain language. It sends the conversation to OpenRouter
 - Examine tool behavior without a provider request using the bundled calculator.
 
 ## <img src="readme-assets/icons/installation.svg" width="24" height="24" alt=""> Installation
+
+Clone with `git clone https://github.com/yaqyn/workbench-ai-agent.git`, then run the commands below from `workbench-ai-agent/`.
 
 Requires **Python 3.13+**, **uv**, and an **OpenRouter API key**.
 
@@ -31,13 +33,6 @@ Create a local `.env` file containing your own key (`.env` is ignored by Git):
 OPENROUTER_API_KEY=your_key_here
 ```
 
-```bash
-uv run main.py "Explain how the calculator handles operator precedence"
-uv run main.py "Evaluate 3 + 5 using the calculator" --verbose
-```
-
-The default model is `openrouter/free`; set `OPENROUTER_MODEL` or pass `--model` to choose another. Availability and request limits depend on the provider. Verbose mode prints step counts, token usage when supplied, and tool names.
-
 ## <img src="readme-assets/icons/launch.svg" width="24" height="24" alt=""> Quick start
 
 ```bash
@@ -46,7 +41,16 @@ The default model is `openrouter/free`; set `OPENROUTER_MODEL` or pass `--model`
 
 The launcher uses uv to prepare the Python environment automatically. Run `./launch` without arguments to enter a task interactively. All CLI options work with the launcher; it can also be invoked by absolute path from another directory. Set `OPENROUTER_API_KEY` in your environment or the project `.env` before sending a task.
 
-## <img src="readme-assets/icons/usage.svg" width="24" height="24" alt=""> Calculator example
+## <img src="readme-assets/icons/usage.svg" width="24" height="24" alt=""> Usage
+
+```bash
+uv run main.py "Explain how the calculator handles operator precedence"
+uv run main.py "Evaluate 3 + 5 using the calculator" --verbose
+```
+
+The default model is `openrouter/free`; set `OPENROUTER_MODEL` or pass `--model` to choose another. Availability and request limits depend on the provider. Verbose mode prints step counts, token usage when supplied, and tool names.
+
+### <img src="readme-assets/icons/usage.svg" width="20" height="20" alt=""> Calculator example
 
 The bundled calculator works independently of the model:
 
