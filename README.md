@@ -11,7 +11,7 @@ Give the agent a task in plain language. It sends the conversation to OpenRouter
 
 **Requirements:** Python 3.13+, uv, and an OpenRouter API key for model requests. Python execution can access the host; workspace file checks do not provide an operating-system sandbox.
 
-[Run a read-only task](#quick-start) · [Read the tool boundaries](#workspace-configuration-and-boundaries)
+[Run a read-only task](#-quick-start) · [Read the tool boundaries](#-workspace-configuration-and-boundaries)
 
 ## <img src="readme-assets/icons/launch.svg" width="24" height="24" alt=""> Quick start
 

@@ -6,7 +6,7 @@
 
 The calculator is the working project bundled with [Workbench](../README.md). Requires Python 3.13+ and uv for the commands below; no model or API key is needed.
 
-[Evaluate an expression](#usage)
+[Evaluate an expression](#-usage)
 
 Evaluate whitespace-separated numbers and operators. Multiplication and division take precedence over addition and subtraction; operators with equal precedence are evaluated from left to right.
 
