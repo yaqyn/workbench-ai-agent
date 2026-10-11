@@ -13,14 +13,6 @@ Give the agent a task in plain language. It sends the conversation to OpenRouter
 
 [Run a read-only task](#-quick-start) · [Read the tool boundaries](#-workspace-configuration-and-boundaries)
 
-## <img src="readme-assets/icons/launch.svg" width="24" height="24" alt=""> Quick start
-
-```bash
-./launch "Explain how the calculator works" --read-only
-```
-
-The launcher uses uv to prepare the Python environment automatically. Run `./launch` without arguments to enter a task interactively. All CLI options work with the launcher; it can also be invoked by absolute path from another directory. Set `OPENROUTER_API_KEY` in your environment or the project `.env` before sending a task.
-
 ## <img src="readme-assets/icons/features.svg" width="24" height="24" alt=""> Features
 
 - Inspect and edit files through workspace-scoped tools.
@@ -49,17 +41,13 @@ uv run main.py "Evaluate 3 + 5 using the calculator" --verbose
 
 The default model is `openrouter/free`; set `OPENROUTER_MODEL` or pass `--model` to choose another. Availability and request limits depend on the provider. Verbose mode prints step counts, token usage when supplied, and tool names.
 
-## <img src="readme-assets/icons/security.svg" width="24" height="24" alt=""> Workspace configuration and boundaries
+## <img src="readme-assets/icons/launch.svg" width="24" height="24" alt=""> Quick start
 
 ```bash
-uv run main.py "Explain this project" --workspace ../folio-static-site --read-only
-uv run main.py "Fix the bug and run relevant tests" --workspace ./calculator --max-steps 30
-uv run main.py "Inspect the calculator" --read-only --transcript conversation.json
+./launch "Explain how the calculator works" --read-only
 ```
 
-`--read-only` exposes only listing and reading tools and also blocks mutation requests in the dispatcher. Normal mode allows file overwrites and Python execution. Inspect the workspace before using normal mode. Python subprocesses have a 30-second timeout; each output stream is truncated to 10,000 bytes. File reads are limited to 10,000 characters. These bounds do not limit subprocess disk usage or isolate executed code from the host.
-
-Transcripts are opt-in JSON conversations, including tool results and file contents. Keep them private when inspecting sensitive projects. Interrupted or failed runs also save the available conversation. Provider failures and exhausted step limits return a nonzero exit status; Ctrl+C returns 130.
+The launcher uses uv to prepare the Python environment automatically. Run `./launch` without arguments to enter a task interactively. All CLI options work with the launcher; it can also be invoked by absolute path from another directory. Set `OPENROUTER_API_KEY` in your environment or the project `.env` before sending a task.
 
 ## <img src="readme-assets/icons/usage.svg" width="24" height="24" alt=""> Calculator example
 
@@ -72,6 +60,18 @@ uv run calculator/main.py "3 + 5 * 2"
 ![Actual JSON output from the bundled calculator](readme-assets/calculator.png)
 
 [Calculator documentation](calculator/README.md) · [Tool definitions](functions/) · [System prompt](prompts.py)
+
+## <img src="readme-assets/icons/security.svg" width="24" height="24" alt=""> Workspace configuration and boundaries
+
+```bash
+uv run main.py "Explain this project" --workspace ../folio-static-site --read-only
+uv run main.py "Fix the bug and run relevant tests" --workspace ./calculator --max-steps 30
+uv run main.py "Inspect the calculator" --read-only --transcript conversation.json
+```
+
+`--read-only` exposes only listing and reading tools and also blocks mutation requests in the dispatcher. Normal mode allows file overwrites and Python execution. Inspect the workspace before using normal mode. Python subprocesses have a 30-second timeout; each output stream is truncated to 10,000 bytes. File reads are limited to 10,000 characters. These bounds do not limit subprocess disk usage or isolate executed code from the host.
+
+Transcripts are opt-in JSON conversations, including tool results and file contents. Keep them private when inspecting sensitive projects. Interrupted or failed runs also save the available conversation. Provider failures and exhausted step limits return a nonzero exit status; Ctrl+C returns 130.
 
 ## <img src="readme-assets/icons/architecture.svg" width="24" height="24" alt=""> Architecture
 
