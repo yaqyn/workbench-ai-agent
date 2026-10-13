@@ -1,4 +1,4 @@
-![Workbench calculator — arithmetic CLI](../readme-assets/cover-renamed.png)
+![Workbench calculator — arithmetic CLI](../readme-assets/cover-renamed.webp)
 
 # Calculator — Arithmetic CLI
 
