@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -10,6 +11,28 @@ from openai import OpenAI, APIError
 
 from call_function import DEFAULT_WORKSPACE, available_functions, call_function
 from prompts import system_prompt
+
+
+def save_transcript(path, history):
+    """Atomically save a conversation, creating parent directories as needed."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            delete=False,
+        ) as transcript:
+            temporary = transcript.name
+            json.dump(history, transcript, indent=2, ensure_ascii=False)
+            transcript.write("\n")
+        os.replace(temporary, path)
+    finally:
+        if temporary and os.path.exists(temporary):
+            os.unlink(temporary)
 
 
 def positive_int(value):
@@ -73,6 +96,7 @@ def main(argv=None):
         print("Error: Set OPENROUTER_API_KEY in the environment or project .env", file=sys.stderr)
         return 1
     history = []
+    exit_code = 0
     try:
         with OpenAI(base_url="https://openrouter.ai/api/v1", api_key=key,
                     timeout=60, max_retries=2) as client:
@@ -80,23 +104,24 @@ def main(argv=None):
                                model=args.model, max_steps=args.max_steps,
                                read_only=args.read_only, verbose=args.verbose, messages=history)
         print(f"Final response:\n{answer}")
-        return 0
     except APIError as error:
         print(f"Provider request failed ({type(error).__name__}). Check connectivity, "
               "model availability, credentials, and quota.", file=sys.stderr)
-        return 1
+        exit_code = 1
     except (RuntimeError, OSError) as error:
         print(f"Error: {error}", file=sys.stderr)
-        return 1
+        exit_code = 1
     except KeyboardInterrupt:
         print("Interrupted.", file=sys.stderr)
-        return 130
-    finally:
-        if args.transcript:
-            try:
-                args.transcript.write_text(json.dumps(history, indent=2), encoding="utf-8")
-            except OSError as error:
-                print(f"Could not save transcript: {error}", file=sys.stderr)
+        exit_code = 130
+    if args.transcript:
+        try:
+            save_transcript(args.transcript, history)
+        except (OSError, TypeError, ValueError) as error:
+            print(f"Could not save transcript: {error}", file=sys.stderr)
+            if exit_code == 0:
+                exit_code = 1
+    return exit_code
 
 
 if __name__ == "__main__":

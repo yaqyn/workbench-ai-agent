@@ -1,3 +1,5 @@
+import json
+import io
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,7 +12,7 @@ from call_function import call_function
 from functions.get_file_content import get_file_content
 from functions.write_file import write_file
 from functions.run_python_file import run_python_file
-from main import run_agent
+from main import main, run_agent, save_transcript
 
 
 def tool(name, arguments):
@@ -76,6 +78,35 @@ class ToolTests(unittest.TestCase):
 
 
 class AgentTests(unittest.TestCase):
+    def test_transcript_creates_directories_and_round_trips_unicode(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "reports" / "conversation.json"
+            history = [{"role": "assistant", "content": "Café"}]
+            save_transcript(path, history)
+            self.assertEqual(json.loads(path.read_text()), history)
+            self.assertTrue(path.read_text().endswith("\n"))
+
+    def test_transcript_failure_preserves_existing_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "conversation.json"
+            path.write_text("existing")
+            with patch("main.os.replace", side_effect=OSError("blocked")):
+                with self.assertRaises(OSError):
+                    save_transcript(path, [])
+            self.assertEqual(path.read_text(), "existing")
+            self.assertEqual([item.name for item in Path(directory).iterdir()],
+                             ["conversation.json"])
+
+    @patch.dict("os.environ", {"OPENROUTER_API_KEY": "test"})
+    @patch("main.save_transcript", side_effect=OSError("disk full"))
+    @patch("main.OpenAI")
+    def test_transcript_failure_changes_success_exit_status(self, client_class, _save):
+        client = client_class.return_value.__enter__.return_value
+        client.chat.completions.create.return_value = response("Done")
+        with patch("sys.stderr", new_callable=io.StringIO) as error:
+            self.assertEqual(main(["Inspect", "--transcript", "result.json"]), 1)
+        self.assertIn("Could not save transcript", error.getvalue())
+
     def test_tool_round_trip_without_usage(self):
         client = Mock()
         client.chat.completions.create.side_effect = [response(calls=[{

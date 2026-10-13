@@ -72,7 +72,7 @@ uv run main.py "Inspect the calculator" --read-only --transcript conversation.js
 
 `--read-only` exposes only listing and reading tools and also blocks mutation requests in the dispatcher. Normal mode allows file overwrites and Python execution. Inspect the workspace before using normal mode. Python subprocesses have a 30-second timeout; each output stream is truncated to 10,000 bytes. File reads are limited to 10,000 characters. These bounds do not limit subprocess disk usage or isolate executed code from the host.
 
-Transcripts are opt-in JSON conversations, including tool results and file contents. Keep them private when inspecting sensitive projects. Interrupted or failed runs also save the available conversation. Provider failures and exhausted step limits return a nonzero exit status; Ctrl+C returns 130.
+Transcripts are opt-in JSON conversations, including tool results and file contents. Keep them private when inspecting sensitive projects. Parent directories are created automatically, and transcripts are replaced atomically so a failed save preserves an existing file. Interrupted or failed runs also save the available conversation. Provider, step-limit, and transcript-save failures return a nonzero exit status; Ctrl+C returns 130.
 
 ## <img src="readme-assets/icons/architecture.svg" width="24" height="24" alt=""> Architecture
 
@@ -96,7 +96,7 @@ uv run python -m unittest discover -s tests -v
 uv run calculator/tests.py
 ```
 
-These checks need no API key and make no provider requests. They cover argument validation, workspace traversal and symlinks, read-only enforcement, Python execution, tool conversations, empty responses, and step limits.
+These checks need no API key and make no provider requests. They cover argument validation, workspace traversal and symlinks, read-only enforcement, Python execution, tool conversations, empty responses, step limits, and atomic transcript persistence.
 
 ## <img src="readme-assets/icons/learning.svg" width="24" height="24" alt=""> Learning context
 
