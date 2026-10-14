@@ -10,6 +10,7 @@ import subprocess
 from openai.types.chat import ChatCompletionMessage
 from call_function import call_function
 from functions.get_file_content import get_file_content
+from functions.get_files_info import get_files_info
 from functions.write_file import write_file
 from functions.run_python_file import run_python_file
 from main import main, run_agent, save_transcript
@@ -61,6 +62,24 @@ class ToolTests(unittest.TestCase):
 
     def test_traversal(self):
         self.assertIn("outside", write_file(str(self.root), "../escape", "oops"))
+
+    def test_listing_survives_dangling_symlink(self):
+        (self.root / "broken").symlink_to(self.root / "missing")
+        (self.root / "regular.txt").write_text("hello")
+        result = get_files_info(str(self.root))
+        self.assertIn("- broken: Error:", result)
+        self.assertIn("- regular.txt: file_size=5 bytes, is_dir=False", result)
+
+    def test_listing_rejects_outside_symlink_metadata(self):
+        outside = Path(self.temp.name) / "secret"
+        outside.write_text("private")
+        (self.root / "link").symlink_to(outside)
+        (self.root / "inside").mkdir()
+        (self.root / "local-link").symlink_to(self.root / "inside")
+        result = get_files_info(str(self.root))
+        self.assertIn("- link: Error: Path is outside", result)
+        self.assertIn("- local-link: file_size=", result)
+        self.assertNotIn("file_size=7 bytes", result)
 
     def test_invalid_tool_calls_return_errors(self):
         for name, arguments in [("unknown", "{}"), ("write_file", "{"),

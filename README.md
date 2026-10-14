@@ -12,7 +12,7 @@ Model requests require your own OpenRouter API key. Python execution can access 
 
 ## <img src="readme-assets/icons/features.svg" width="24" height="24" alt=""> Features
 
-- Inspect and edit files through workspace-scoped tools.
+- Inspect and edit files through workspace-scoped tools; listings report inaccessible entries individually.
 - Run Python with bounded execution time and output.
 - Use read-only mode for inspection and save optional transcripts.
 - Examine tool behavior without a provider request using the bundled calculator.

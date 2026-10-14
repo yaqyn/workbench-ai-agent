@@ -7,12 +7,15 @@ def get_files_info(working_directory: str, directory: str = ".") -> str:
         if not os.path.isdir(target_dir):
             return f'Error: "{directory}" is not a directory'
         metadata = []
-        for dir in sorted(os.listdir(target_dir)):
-            filepath = os.path.join(target_dir, dir)
-            is_dir = os.path.isdir(filepath)
-            file_size = os.path.getsize(filepath)
-            format = f"- {dir}: file_size={file_size} bytes, is_dir={is_dir}"
-            metadata.append(format)
+        for name in sorted(os.listdir(target_dir)):
+            try:
+                relative_path = os.path.relpath(target_dir / name, working_directory)
+                filepath = resolve_path(working_directory, relative_path)
+                is_dir = filepath.is_dir()
+                file_size = filepath.stat().st_size
+                metadata.append(f"- {name}: file_size={file_size} bytes, is_dir={is_dir}")
+            except (OSError, ValueError) as error:
+                metadata.append(f"- {name}: Error: {error}")
         return "\n".join(metadata)
     except Exception as e:
         return f"Error: {e}"
