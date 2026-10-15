@@ -43,6 +43,13 @@ class ToolTests(unittest.TestCase):
         self.assertIn("[Output truncated]", output)
         self.assertLess(len(output), 10100)
 
+    def test_unencodable_content_preserves_existing_file(self):
+        path = self.root / "notes.txt"
+        path.write_text("original", encoding="utf-8")
+        result = write_file(str(self.root), "notes.txt", "invalid \ud800")
+        self.assertTrue(result.startswith("Error:"))
+        self.assertEqual(path.read_text(encoding="utf-8"), "original")
+
     def test_timeout_returns_tool_error(self):
         write_file(str(self.root), "slow.py", "pass")
         with patch("functions.run_python_file.subprocess.run",

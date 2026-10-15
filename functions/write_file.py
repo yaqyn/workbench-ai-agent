@@ -7,6 +7,8 @@ def write_file(working_directory: str, file_path: str, content: str) -> str:
         if os.path.isdir(target_path):
             return f'Error: Cannot write to "{file_path}" as it is a directory'
 
+        # Validate encoding before opening an existing file in truncating mode.
+        content.encode("utf-8")
         parent_dir = os.path.dirname(target_path)
         os.makedirs(parent_dir, exist_ok=True)
 
