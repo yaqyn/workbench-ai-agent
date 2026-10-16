@@ -26,6 +26,20 @@ def response(content=None, calls=None):
 
 
 class ToolTests(unittest.TestCase):
+    def test_python_tool_cannot_consume_the_callers_input(self):
+        import sys
+        script = self.root / "reader.py"
+        script.write_text("print(input())", encoding="utf-8")
+        code = (
+            "from functions.run_python_file import run_python_file; "
+            f"print(run_python_file({str(self.root)!r}, 'reader.py'))"
+        )
+        result = subprocess.run([sys.executable, "-c", code], input="private caller input\n",
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("EOFError", result.stdout)
+        self.assertNotIn("private caller input", result.stdout)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

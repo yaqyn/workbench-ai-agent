@@ -31,6 +31,7 @@ def run_python_file(
             result = subprocess.run(
                 command,
                 cwd=absolute_working_directory,
+                stdin=subprocess.DEVNULL,
                 stdout=stdout,
                 stderr=stderr,
                 timeout=30,
