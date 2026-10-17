@@ -26,6 +26,17 @@ def response(content=None, calls=None):
 
 
 class ToolTests(unittest.TestCase):
+    def test_large_directory_listing_is_bounded_and_stably_sorted(self):
+        for index in range(205):
+            (self.root / f"file-{index:03}.txt").touch()
+        result = get_files_info(str(self.root))
+        lines = result.splitlines()
+        self.assertEqual(len(lines), 201)
+        self.assertTrue(lines[0].startswith("- file-000.txt:"))
+        self.assertTrue(lines[199].startswith("- file-199.txt:"))
+        self.assertIn("5 more entries omitted", lines[-1])
+        self.assertNotIn("file-204.txt", result)
+
     def test_python_tool_cannot_consume_the_callers_input(self):
         import sys
         script = self.root / "reader.py"

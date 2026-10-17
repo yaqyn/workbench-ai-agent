@@ -13,7 +13,7 @@ Model requests require your own OpenRouter API key. Python execution can access 
 ## <img src="readme-assets/icons/features.svg" width="24" height="24" alt=""> Features
 
 - Stay in a full-screen terminal interface with task input, settings, progress, and results.
-- Inspect and edit files through workspace-scoped tools; listings report inaccessible entries individually.
+- Inspect and edit files through workspace-scoped tools; listings report inaccessible entries individually and show the first 200 sorted entries, with an omission count for larger directories.
 - Run Python with bounded execution time and output.
 - Use read-only mode for inspection and save optional transcripts.
 - Preview the interface offline without credentials or provider requests.
