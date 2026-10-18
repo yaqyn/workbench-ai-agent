@@ -1,5 +1,6 @@
 from functions.paths import resolve_path
 import os
+import stat
 import tempfile
 
 def write_file(working_directory: str, file_path: str, content: str) -> str:
@@ -12,6 +13,11 @@ def write_file(working_directory: str, file_path: str, content: str) -> str:
         content.encode("utf-8")
         parent_dir = os.path.dirname(target_path)
         os.makedirs(parent_dir, exist_ok=True)
+        existing_mode = (
+            stat.S_IMODE(os.stat(target_path).st_mode)
+            if os.path.exists(target_path)
+            else None
+        )
 
         temporary = None
         try:
@@ -23,6 +29,8 @@ def write_file(working_directory: str, file_path: str, content: str) -> str:
                 f.write(content)
                 f.flush()
                 os.fsync(f.fileno())
+            if existing_mode is not None:
+                os.chmod(temporary, existing_mode)
             os.replace(temporary, target_path)
             temporary = None
         finally:

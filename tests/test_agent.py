@@ -6,6 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 import subprocess
+import stat
 
 from openai.types.chat import ChatCompletionMessage
 from call_function import call_function
@@ -74,6 +75,14 @@ class ToolTests(unittest.TestCase):
         result = write_file(str(self.root), "notes.txt", "invalid \ud800")
         self.assertTrue(result.startswith("Error:"))
         self.assertEqual(path.read_text(encoding="utf-8"), "original")
+
+    def test_overwrite_preserves_existing_mode(self):
+        path = self.root / "launch"
+        path.write_text("original", encoding="utf-8")
+        path.chmod(0o751)
+        self.assertIn("Successfully", write_file(str(self.root), "launch", "replacement"))
+        self.assertEqual(path.read_text(encoding="utf-8"), "replacement")
+        self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o751)
 
     def test_failed_replace_preserves_existing_file(self):
         path = self.root / "notes.txt"
