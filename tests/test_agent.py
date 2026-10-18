@@ -75,6 +75,15 @@ class ToolTests(unittest.TestCase):
         self.assertTrue(result.startswith("Error:"))
         self.assertEqual(path.read_text(encoding="utf-8"), "original")
 
+    def test_failed_replace_preserves_existing_file(self):
+        path = self.root / "notes.txt"
+        path.write_text("original", encoding="utf-8")
+        with patch("functions.write_file.os.replace", side_effect=OSError("blocked")):
+            result = write_file(str(self.root), "notes.txt", "replacement")
+        self.assertTrue(result.startswith("Error:"))
+        self.assertEqual(path.read_text(encoding="utf-8"), "original")
+        self.assertEqual([item.name for item in self.root.iterdir()], ["notes.txt"])
+
     def test_timeout_returns_tool_error(self):
         write_file(str(self.root), "slow.py", "pass")
         with patch("functions.run_python_file.subprocess.run",

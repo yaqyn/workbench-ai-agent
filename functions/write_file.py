@@ -1,5 +1,6 @@
 from functions.paths import resolve_path
 import os
+import tempfile
 
 def write_file(working_directory: str, file_path: str, content: str) -> str:
     try:
@@ -12,8 +13,24 @@ def write_file(working_directory: str, file_path: str, content: str) -> str:
         parent_dir = os.path.dirname(target_path)
         os.makedirs(parent_dir, exist_ok=True)
 
-        with open(target_path, "w", encoding="utf-8") as f:
-            f.write(content)
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=parent_dir,
+                prefix=f".{target_path.name}.", delete=False,
+            ) as f:
+                temporary = f.name
+                f.write(content)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(temporary, target_path)
+            temporary = None
+        finally:
+            if temporary is not None:
+                try:
+                    os.unlink(temporary)
+                except FileNotFoundError:
+                    pass
 
         return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
 
