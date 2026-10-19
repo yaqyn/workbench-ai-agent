@@ -10,6 +10,13 @@ def run_python_file(
     working_directory: str, file_path: str, args: list[str] | None = None
 ) -> str:
     try:
+        if args is not None and (not isinstance(args, list) or len(args) > 100):
+            return "Error: Python arguments must be a list of at most 100 strings"
+        if args is not None and (
+            any(not isinstance(arg, str) or len(arg) > 4096 for arg in args)
+            or sum(map(len, args)) > 16384
+        ):
+            return "Error: Python arguments exceed the safe size limit"
         absolute_working_directory = str(resolve_path(working_directory, "."))
         absolute_file_path = str(resolve_path(working_directory, file_path))
         if not os.path.isfile(absolute_file_path):

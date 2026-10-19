@@ -99,6 +99,13 @@ class ToolTests(unittest.TestCase):
                    side_effect=subprocess.TimeoutExpired("python", 30)):
             self.assertIn("timed out", run_python_file(str(self.root), "slow.py"))
 
+    def test_run_rejects_oversized_arguments_before_starting_process(self):
+        write_file(str(self.root), "echo.py", "print('ok')")
+        with patch("functions.run_python_file.subprocess.run") as run:
+            self.assertIn("safe size", run_python_file(str(self.root), "echo.py", ["x" * 4097]))
+            self.assertIn("at most 100", run_python_file(str(self.root), "echo.py", ["x"] * 101))
+            run.assert_not_called()
+
     def test_symlink_escape(self):
         outside = Path(self.temp.name) / "outside"
         outside.mkdir()
