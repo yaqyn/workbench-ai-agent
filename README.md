@@ -128,7 +128,7 @@ The agent loop sends conversation history to the model, dispatches supported too
 | `get_files_info` | List files and directories |
 | `get_file_content` | Read file contents |
 | `write_file` | Write a file |
-| `run_python_file` | Execute a Python file with a 30-second timeout |
+| `run_python_file` | Execute a Python file with a 30-second timeout and sensitive environment variables removed |
 
 `call_function.py` validates tool arguments and dispatches requests into the configured workspace. The default calculator path is anchored to the project, so launching from another directory works. File tools resolve symlinks and reject paths outside that directory. Python execution is a subprocess, so these checks are not an operating-system sandbox. Run the course agent against disposable local work you are comfortable letting it modify.
 

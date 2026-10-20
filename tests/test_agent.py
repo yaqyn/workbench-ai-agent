@@ -52,6 +52,17 @@ class ToolTests(unittest.TestCase):
         self.assertIn("EOFError", result.stdout)
         self.assertNotIn("private caller input", result.stdout)
 
+    def test_python_tool_does_not_inherit_sensitive_environment(self):
+        write_file(
+            self.root,
+            "env.py",
+            "import os; print(os.getenv('WORKBENCH_TEST_SECRET', 'missing'))",
+        )
+        with patch.dict("os.environ", {"WORKBENCH_TEST_SECRET": "private-value"}):
+            result = run_python_file(str(self.root), "env.py")
+        self.assertIn("missing", result)
+        self.assertNotIn("private-value", result)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

@@ -3,7 +3,21 @@ import sys
 from functions.paths import resolve_path
 from config import MAX_CHARS
 import os
+import re
 import subprocess
+
+
+SENSITIVE_ENV_MARKERS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
+
+
+def safe_environment() -> dict[str, str]:
+    return {
+        name: value
+        for name, value in os.environ.items()
+        if not set(re.split(r"[^A-Z0-9]+", name.upper())).intersection(
+            SENSITIVE_ENV_MARKERS
+        )
+    }
 
 
 def run_python_file(
@@ -41,6 +55,7 @@ def run_python_file(
                 stdin=subprocess.DEVNULL,
                 stdout=stdout,
                 stderr=stderr,
+                env=safe_environment(),
                 timeout=30,
             )
             captured = []
