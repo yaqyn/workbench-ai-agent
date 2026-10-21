@@ -8,15 +8,15 @@ import subprocess
 
 
 SENSITIVE_ENV_MARKERS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
+SENSITIVE_ENV_NAMES = {"DATABASE_URL", "REDIS_URL", "CONNECTION_STRING"}
 
 
 def safe_environment() -> dict[str, str]:
     return {
         name: value
         for name, value in os.environ.items()
-        if not set(re.split(r"[^A-Z0-9]+", name.upper())).intersection(
-            SENSITIVE_ENV_MARKERS
-        )
+        if name.upper() not in SENSITIVE_ENV_NAMES
+        and not set(re.split(r"[^A-Z0-9]+", name.upper())).intersection(SENSITIVE_ENV_MARKERS)
     }
 
 

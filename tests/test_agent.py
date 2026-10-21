@@ -63,6 +63,13 @@ class ToolTests(unittest.TestCase):
         self.assertIn("missing", result)
         self.assertNotIn("private-value", result)
 
+    def test_python_tool_does_not_inherit_connection_urls(self):
+        write_file(self.root, "env.py", "import os; print(os.getenv('DATABASE_URL', 'missing'))")
+        with patch.dict("os.environ", {"DATABASE_URL": "postgres://user:secret@db/private"}):
+            result = run_python_file(str(self.root), "env.py")
+        self.assertIn("missing", result)
+        self.assertNotIn("postgres://", result)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
