@@ -81,6 +81,10 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(get_file_content(str(self.root), "sub/test.py"), "print('hello')")
         self.assertIn("hello", run_python_file(str(self.root), "sub/test.py"))
 
+    def test_read_strips_utf8_byte_order_mark(self):
+        (self.root / "bom.py").write_bytes(b"\xef\xbb\xbfprint('hello')")
+        self.assertEqual(get_file_content(str(self.root), "bom.py"), "print('hello')")
+
     def test_large_output_is_truncated(self):
         write_file(str(self.root), "noisy.py", "print('x' * 20000)")
         output = run_python_file(str(self.root), "noisy.py")

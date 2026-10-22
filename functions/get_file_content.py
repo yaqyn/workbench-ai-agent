@@ -7,7 +7,9 @@ def get_file_content(working_directory: str, file_path: str) -> str:
         target_dir = resolve_path(working_directory, file_path)
         if not os.path.isfile(target_dir):
             return f'Error: File not found or is not a regular file: "{file_path}"'
-        with open(target_dir, "r", encoding="utf-8") as f:
+        # Accept regular UTF-8 and hide an optional byte-order mark from the
+        # agent so the first source character is not polluted by U+FEFF.
+        with open(target_dir, "r", encoding="utf-8-sig") as f:
             file_content_string = f.read(MAX_CHARS)
             if f.read(1):
                 file_content_string += f'[...File "{file_path}" truncated at {MAX_CHARS} characters]'
