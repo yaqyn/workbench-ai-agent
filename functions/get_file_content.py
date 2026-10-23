@@ -11,6 +11,8 @@ def get_file_content(working_directory: str, file_path: str) -> str:
         # agent so the first source character is not polluted by U+FEFF.
         with open(target_dir, "r", encoding="utf-8-sig") as f:
             file_content_string = f.read(MAX_CHARS)
+            if "\x00" in file_content_string:
+                return f'Error: Binary file cannot be read as text: "{file_path}"'
             if f.read(1):
                 file_content_string += f'[...File "{file_path}" truncated at {MAX_CHARS} characters]'
         return file_content_string

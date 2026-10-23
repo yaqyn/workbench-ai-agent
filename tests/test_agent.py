@@ -85,6 +85,12 @@ class ToolTests(unittest.TestCase):
         (self.root / "bom.py").write_bytes(b"\xef\xbb\xbfprint('hello')")
         self.assertEqual(get_file_content(str(self.root), "bom.py"), "print('hello')")
 
+    def test_read_rejects_binary_content(self):
+        (self.root / "asset.bin").write_bytes(b"safe-prefix\x00hidden")
+        result = get_file_content(str(self.root), "asset.bin")
+        self.assertTrue(result.startswith("Error: Binary file"))
+        self.assertNotIn("hidden", result)
+
     def test_large_output_is_truncated(self):
         write_file(str(self.root), "noisy.py", "print('x' * 20000)")
         output = run_python_file(str(self.root), "noisy.py")
