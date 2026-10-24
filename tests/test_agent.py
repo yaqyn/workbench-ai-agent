@@ -91,6 +91,12 @@ class ToolTests(unittest.TestCase):
         self.assertTrue(result.startswith("Error: Binary file"))
         self.assertNotIn("hidden", result)
 
+    def test_read_rejects_invalid_utf8_without_leaking_content(self):
+        (self.root / "invalid.txt").write_bytes(b"visible\xffsecret")
+        result = get_file_content(str(self.root), "invalid.txt")
+        self.assertEqual(result, 'Error: File is not valid UTF-8 text: "invalid.txt"')
+        self.assertNotIn("secret", result)
+
     def test_large_output_is_truncated(self):
         write_file(str(self.root), "noisy.py", "print('x' * 20000)")
         output = run_python_file(str(self.root), "noisy.py")
