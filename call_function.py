@@ -34,6 +34,9 @@ def call_function(tool_call, verbose=False, working_directory=None, read_only=Fa
             if key == "args":
                 if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
                     raise ValueError("args must be an array of strings")
+            elif key == "start_line":
+                if type(value) is not int or value < 1:
+                    raise ValueError("start_line must be a positive integer")
             elif not isinstance(value, str):
                 raise ValueError(f"{key} must be a string")
         arguments["working_directory"] = str(working_directory or DEFAULT_WORKSPACE)
