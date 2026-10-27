@@ -3,11 +3,15 @@ import os
 import stat
 import tempfile
 
-def write_file(working_directory: str, file_path: str, content: str) -> str:
+def write_file(working_directory: str, file_path: str, content: str, overwrite: bool = True) -> str:
     try:
         target_path = resolve_path(working_directory, file_path)
+        if type(overwrite) is not bool:
+            return "Error: overwrite must be a boolean"
         if os.path.isdir(target_path):
             return f'Error: Cannot write to "{file_path}" as it is a directory'
+        if not overwrite and os.path.exists(target_path):
+            return f'Error: File already exists: "{file_path}"'
 
         # Validate encoding before opening an existing file in truncating mode.
         content.encode("utf-8")
@@ -60,6 +64,10 @@ schema_write_file = {
                 "content": {
                     "type": "string",
                     "description": "The content to write to the file",
+                },
+                "overwrite": {
+                    "type": "boolean",
+                    "description": "Whether an existing file may be replaced (default: true)",
                 },
             },
             "required": ["file_path", "content"],

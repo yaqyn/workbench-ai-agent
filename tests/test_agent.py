@@ -110,6 +110,15 @@ class ToolTests(unittest.TestCase):
         self.assertTrue(result.startswith("Error:"))
         self.assertEqual(path.read_text(encoding="utf-8"), "original")
 
+    def test_write_can_require_a_new_file(self):
+        path = self.root / "notes.txt"
+        path.write_text("original", encoding="utf-8")
+        self.assertIn("already exists", write_file(str(self.root), "notes.txt", "replacement", overwrite=False))
+        self.assertEqual(path.read_text(encoding="utf-8"), "original")
+        self.assertIn("Successfully", write_file(str(self.root), "new.txt", "created", overwrite=False))
+        self.assertEqual((self.root / "new.txt").read_text(encoding="utf-8"), "created")
+        self.assertIn("boolean", write_file(str(self.root), "other.txt", "ignored", overwrite="no"))
+
     def test_overwrite_preserves_existing_mode(self):
         path = self.root / "launch"
         path.write_text("original", encoding="utf-8")
