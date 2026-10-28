@@ -207,6 +207,14 @@ class AgentTests(unittest.TestCase):
             self.assertEqual([item.name for item in Path(directory).iterdir()],
                              ["conversation.json"])
 
+    def test_transcript_replacement_preserves_file_permissions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "conversation.json"
+            path.write_text("existing")
+            path.chmod(0o640)
+            save_transcript(path, [])
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o640)
+
     @patch.dict("os.environ", {"OPENROUTER_API_KEY": "test"})
     @patch("main.save_transcript", side_effect=OSError("disk full"))
     @patch("main.OpenAI")

@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import stat
 import sys
 import tempfile
 from pathlib import Path
@@ -24,6 +25,11 @@ def save_transcript(path, history):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
+    existing_mode = None
+    try:
+        existing_mode = stat.S_IMODE(path.stat().st_mode)
+    except FileNotFoundError:
+        pass
     try:
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -35,6 +41,8 @@ def save_transcript(path, history):
             temporary = transcript.name
             json.dump(history, transcript, indent=2, ensure_ascii=False)
             transcript.write("\n")
+        if existing_mode is not None:
+            os.chmod(temporary, existing_mode)
         os.replace(temporary, path)
     finally:
         if temporary and os.path.exists(temporary):
