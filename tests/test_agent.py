@@ -103,6 +103,16 @@ class ToolTests(unittest.TestCase):
         self.assertIn("[Output truncated]", output)
         self.assertLess(len(output), 10100)
 
+    def test_combined_stdout_and_stderr_share_output_limit(self):
+        write_file(
+            str(self.root),
+            "noisy.py",
+            "import sys\nprint('x' * 20000)\nprint('y' * 20000, file=sys.stderr)",
+        )
+        output = run_python_file(str(self.root), "noisy.py")
+        self.assertIn("[Output truncated]", output)
+        self.assertLess(len(output), 10200)
+
     def test_unencodable_content_preserves_existing_file(self):
         path = self.root / "notes.txt"
         path.write_text("original", encoding="utf-8")

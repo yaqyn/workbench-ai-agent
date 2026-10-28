@@ -59,11 +59,14 @@ def run_python_file(
                 timeout=30,
             )
             captured = []
+            remaining = MAX_CHARS
             for stream in (stdout, stderr):
                 stream.seek(0)
-                raw = stream.read(MAX_CHARS + 1)
-                text = raw[:MAX_CHARS].decode("utf-8", errors="replace")
-                if len(raw) > MAX_CHARS:
+                raw = stream.read(remaining + 1)
+                kept = raw[:remaining]
+                text = kept.decode("utf-8", errors="replace")
+                remaining -= len(kept)
+                if len(raw) > len(kept):
                     text += "\n[Output truncated]"
                 captured.append(text)
             result.stdout, result.stderr = captured
