@@ -38,6 +38,16 @@ class ToolTests(unittest.TestCase):
         self.assertIn("5 more entries omitted", lines[-1])
         self.assertNotIn("file-204.txt", result)
 
+    def test_directory_listing_accepts_a_smaller_page(self):
+        for name in ["charlie.txt", "alpha.txt", "bravo.txt"]:
+            (self.root / name).touch()
+        result = get_files_info(str(self.root), max_entries=2)
+        self.assertIn("- alpha.txt:", result)
+        self.assertIn("- bravo.txt:", result)
+        self.assertNotIn("- charlie.txt:", result)
+        self.assertIn("1 more entries omitted", result)
+        self.assertIn("between 1 and 200", get_files_info(str(self.root), max_entries=0))
+
     def test_python_tool_cannot_consume_the_callers_input(self):
         import sys
         script = self.root / "reader.py"
