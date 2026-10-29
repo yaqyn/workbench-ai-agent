@@ -80,6 +80,21 @@ class ToolTests(unittest.TestCase):
         self.assertIn("missing", result)
         self.assertNotIn("postgres://", result)
 
+    def test_python_tool_does_not_inherit_common_database_passwords(self):
+        names = ("PGPASSWORD", "PGPASSFILE", "MYSQL_PWD", "REDISCLI_AUTH")
+        values = {name: f"test-secret-{name}" for name in names}
+        script = (
+            "import os\n"
+            f"names = {names!r}\n"
+            "print(' '.join(os.getenv(name, 'missing') for name in names))\n"
+        )
+        write_file(self.root, "env.py", script)
+        with patch.dict("os.environ", values):
+            result = run_python_file(str(self.root), "env.py")
+        self.assertIn("missing", result)
+        for value in values.values():
+            self.assertNotIn(value, result)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
