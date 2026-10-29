@@ -108,7 +108,7 @@ class ToolTests(unittest.TestCase):
         self.assertNotIn("secret", result)
 
     def test_large_output_is_truncated(self):
-        write_file(str(self.root), "noisy.py", "print('x' * 20000)")
+        write_file(str(self.root), "noisy.py", "print('x' * (8 * 1024 * 1024))")
         output = run_python_file(str(self.root), "noisy.py")
         self.assertIn("[Output truncated]", output)
         self.assertLess(len(output), 10100)
@@ -158,13 +158,17 @@ class ToolTests(unittest.TestCase):
 
     def test_timeout_returns_tool_error(self):
         write_file(str(self.root), "slow.py", "pass")
-        with patch("functions.run_python_file.subprocess.run",
-                   side_effect=subprocess.TimeoutExpired("python", 30)):
+        process = Mock()
+        process.stdout = io.BytesIO()
+        process.stderr = io.BytesIO()
+        process.wait.side_effect = [subprocess.TimeoutExpired("python", 30), -9]
+        with patch("functions.run_python_file.subprocess.Popen", return_value=process):
             self.assertIn("timed out", run_python_file(str(self.root), "slow.py"))
+        process.kill.assert_called_once()
 
     def test_run_rejects_oversized_arguments_before_starting_process(self):
         write_file(str(self.root), "echo.py", "print('ok')")
-        with patch("functions.run_python_file.subprocess.run") as run:
+        with patch("functions.run_python_file.subprocess.Popen") as run:
             self.assertIn("safe size", run_python_file(str(self.root), "echo.py", ["x" * 4097]))
             self.assertIn("at most 100", run_python_file(str(self.root), "echo.py", ["x"] * 101))
             run.assert_not_called()
