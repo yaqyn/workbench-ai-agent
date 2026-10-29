@@ -8,7 +8,15 @@ import subprocess
 
 
 SENSITIVE_ENV_MARKERS = ("KEY", "TOKEN", "SECRET", "PASSWORD", "CREDENTIAL")
-SENSITIVE_ENV_NAMES = {"DATABASE_URL", "REDIS_URL", "CONNECTION_STRING"}
+SENSITIVE_ENV_NAMES = {
+    "DATABASE_URL",
+    "REDIS_URL",
+    "CONNECTION_STRING",
+    "PGPASSWORD",
+    "PGPASSFILE",
+    "MYSQL_PWD",
+    "REDISCLI_AUTH",
+}
 
 
 def _read_limited(stream, limit: int) -> bytes:
