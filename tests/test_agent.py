@@ -15,6 +15,7 @@ from functions.get_files_info import get_files_info
 from functions.write_file import write_file
 from functions.run_python_file import run_python_file
 from functions.search_files import search_files
+from functions.get_file_metadata import get_file_metadata
 from main import main, run_agent, save_transcript
 
 
@@ -28,6 +29,15 @@ def response(content=None, calls=None):
 
 
 class ToolTests(unittest.TestCase):
+    def test_file_metadata_reports_stable_read_only_fields(self):
+        path = self.root / "notes.txt"
+        path.write_text("hello", encoding="utf-8")
+        result = json.loads(get_file_metadata(str(self.root), "notes.txt"))
+        self.assertEqual(result["size_bytes"], 5)
+        self.assertEqual(result["path"], "notes.txt")
+        self.assertIn("modified_at", result)
+        self.assertIn("mode", result)
+        self.assertIn("outside", get_file_metadata(str(self.root), "../secret"))
     def test_literal_search_is_bounded_and_skips_binary_files(self):
         (self.root / "notes.txt").write_text("Alpha\nneedle here\n")
         (self.root / "binary.dat").write_bytes(b"\xffneedle")
@@ -292,7 +302,7 @@ class AgentTests(unittest.TestCase):
         tools = client.chat.completions.create.call_args.kwargs["tools"]
         self.assertEqual(
             {item["function"]["name"] for item in tools},
-            {"get_files_info", "get_file_content", "search_files"},
+            {"get_files_info", "get_file_content", "search_files", "get_file_metadata"},
         )
 
     def test_step_limit(self):
