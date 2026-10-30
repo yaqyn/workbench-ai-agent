@@ -14,6 +14,7 @@ from functions.get_file_content import get_file_content
 from functions.get_files_info import get_files_info
 from functions.write_file import write_file
 from functions.run_python_file import run_python_file
+from functions.search_files import search_files
 from main import main, run_agent, save_transcript
 
 
@@ -27,6 +28,13 @@ def response(content=None, calls=None):
 
 
 class ToolTests(unittest.TestCase):
+    def test_literal_search_is_bounded_and_skips_binary_files(self):
+        (self.root / "notes.txt").write_text("Alpha\nneedle here\n")
+        (self.root / "binary.dat").write_bytes(b"\xffneedle")
+        result = search_files(str(self.root), "NEEDLE", max_results=1)
+        self.assertIn("notes.txt:2: needle here", result)
+        self.assertNotIn("binary.dat", result)
+        self.assertIn("between 1 and 100", search_files(str(self.root), "x", max_results=101))
     def test_large_directory_listing_is_bounded_and_stably_sorted(self):
         for index in range(205):
             (self.root / f"file-{index:03}.txt").touch()
@@ -282,7 +290,10 @@ class AgentTests(unittest.TestCase):
         self.assertEqual(run_agent(client, "Inspect", read_only=True, messages=history), "Done")
         self.assertEqual(history[3]["role"], "tool")
         tools = client.chat.completions.create.call_args.kwargs["tools"]
-        self.assertEqual(len(tools), 2)
+        self.assertEqual(
+            {item["function"]["name"] for item in tools},
+            {"get_files_info", "get_file_content", "search_files"},
+        )
 
     def test_step_limit(self):
         client = Mock()

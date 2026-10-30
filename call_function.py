@@ -8,13 +8,15 @@ from functions.get_files_info import get_files_info, schema_get_files_info
 from functions.get_file_content import get_file_content, schema_get_file_content
 from functions.run_python_file import run_python_file, schema_run_python_file
 from functions.write_file import write_file, schema_write_file
+from functions.search_files import search_files, schema_search_files
 
 DEFAULT_WORKSPACE = Path(__file__).resolve().parent / "calculator"
 available_functions = [schema_get_files_info, schema_get_file_content,
-                       schema_run_python_file, schema_write_file]
+                       schema_run_python_file, schema_write_file, schema_search_files]
 function_map: dict[str, Callable[..., str]] = {
     "get_files_info": get_files_info, "get_file_content": get_file_content,
     "run_python_file": run_python_file, "write_file": write_file,
+    "search_files": search_files,
 }
 
 
@@ -34,7 +36,7 @@ def call_function(tool_call, verbose=False, working_directory=None, read_only=Fa
             if key == "args":
                 if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
                     raise ValueError("args must be an array of strings")
-            elif key in {"start_line", "line_count"}:
+            elif key in {"start_line", "line_count", "max_entries", "max_results"}:
                 if type(value) is not int or value < 1:
                     raise ValueError(f"{key} must be a positive integer")
             elif not isinstance(value, str):
