@@ -33,6 +33,7 @@ class ToolTests(unittest.TestCase):
         path = self.root / "notes.txt"
         path.write_text("hello", encoding="utf-8")
         result = json.loads(get_file_metadata(str(self.root), "notes.txt"))
+        self.assertEqual(result["sha256"], "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
         self.assertEqual(result["size_bytes"], 5)
         self.assertEqual(result["path"], "notes.txt")
         self.assertIn("modified_at", result)
