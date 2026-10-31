@@ -33,6 +33,7 @@ class ToolTests(unittest.TestCase):
         path = self.root / "notes.txt"
         path.write_text("hello", encoding="utf-8")
         result = json.loads(get_file_metadata(str(self.root), "notes.txt"))
+        self.assertEqual(result["sha256"], "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
         self.assertEqual(result["size_bytes"], 5)
         self.assertEqual(result["path"], "notes.txt")
         self.assertIn("modified_at", result)
@@ -45,6 +46,14 @@ class ToolTests(unittest.TestCase):
         self.assertIn("notes.txt:2: needle here", result)
         self.assertNotIn("binary.dat", result)
         self.assertIn("between 1 and 100", search_files(str(self.root), "x", max_results=101))
+
+    def test_literal_search_can_filter_by_file_suffix(self):
+        (self.root / "match.py").write_text("needle", encoding="utf-8")
+        (self.root / "match.txt").write_text("needle", encoding="utf-8")
+        result = search_files(str(self.root), "needle", suffix=".PY")
+        self.assertIn("match.py", result)
+        self.assertNotIn("match.txt", result)
+        self.assertIn("short file extension", search_files(str(self.root), "needle", suffix="py"))
     def test_large_directory_listing_is_bounded_and_stably_sorted(self):
         for index in range(205):
             (self.root / f"file-{index:03}.txt").touch()
