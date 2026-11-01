@@ -55,6 +55,13 @@ class ToolTests(unittest.TestCase):
         self.assertIn("match.py", result)
         self.assertNotIn("match.txt", result)
         self.assertIn("short file extension", search_files(str(self.root), "needle", suffix="py"))
+
+    def test_literal_search_can_match_exact_case(self):
+        (self.root / "notes.txt").write_text("Needle needle", encoding="utf-8")
+        result = search_files(str(self.root), "Needle", case_sensitive=True)
+        self.assertIn("Needle needle", result)
+        self.assertEqual(search_files(str(self.root), "NEEDLE", case_sensitive=True), "No matches found.")
+        self.assertIn("boolean", search_files(str(self.root), "Needle", case_sensitive="yes"))
     def test_large_directory_listing_is_bounded_and_stably_sorted(self):
         for index in range(205):
             (self.root / f"file-{index:03}.txt").touch()
