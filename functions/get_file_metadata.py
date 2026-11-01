@@ -2,6 +2,7 @@
 from datetime import datetime, timezone
 import hashlib
 import json
+import mimetypes
 import stat
 
 from functions.paths import resolve_path
@@ -22,6 +23,7 @@ def get_file_metadata(working_directory: str, file_path: str) -> str:
             "size_bytes": details.st_size,
             "modified_at": datetime.fromtimestamp(details.st_mtime, timezone.utc).isoformat(),
             "mode": oct(stat.S_IMODE(details.st_mode)),
+            "content_type": mimetypes.guess_type(path.name)[0] or "application/octet-stream",
             "sha256": digest.hexdigest(),
         }, sort_keys=True)
     except (OSError, ValueError) as error:
