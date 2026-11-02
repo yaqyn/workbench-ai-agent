@@ -17,6 +17,12 @@ SENSITIVE_ENV_NAMES = {
     "MYSQL_PWD",
     "REDISCLI_AUTH",
 }
+PYTHON_CONTROL_ENV_NAMES = {
+    "PYTHONBREAKPOINT",
+    "PYTHONINSPECT",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+}
 
 
 def _read_limited(stream, limit: int) -> bytes:
@@ -38,6 +44,7 @@ def safe_environment() -> dict[str, str]:
         name: value
         for name, value in os.environ.items()
         if name.upper() not in SENSITIVE_ENV_NAMES
+        and name.upper() not in PYTHON_CONTROL_ENV_NAMES
         and not set(re.split(r"[^A-Z0-9]+", name.upper())).intersection(SENSITIVE_ENV_MARKERS)
     }
 

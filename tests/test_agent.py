@@ -130,6 +130,14 @@ class ToolTests(unittest.TestCase):
         for value in values.values():
             self.assertNotIn(value, result)
 
+    def test_python_tool_does_not_inherit_interpreter_controls(self):
+        names = ("PYTHONPATH", "PYTHONSTARTUP", "PYTHONINSPECT", "PYTHONBREAKPOINT")
+        write_file(self.root, "env.py", "import os; print(' '.join(os.getenv(name, 'missing') for name in " + repr(names) + "))")
+        with patch.dict("os.environ", {name: "untrusted" for name in names}):
+            result = run_python_file(str(self.root), "env.py")
+        self.assertNotIn("untrusted", result)
+        self.assertEqual(result.count("missing"), len(names))
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
