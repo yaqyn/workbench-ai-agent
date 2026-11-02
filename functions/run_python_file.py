@@ -50,9 +50,12 @@ def safe_environment() -> dict[str, str]:
 
 
 def run_python_file(
-    working_directory: str, file_path: str, args: list[str] | None = None
+    working_directory: str, file_path: str, args: list[str] | None = None,
+    timeout_seconds: int = 30,
 ) -> str:
     try:
+        if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 120:
+            return "Error: timeout_seconds must be an integer between 1 and 120"
         if args is not None and (not isinstance(args, list) or len(args) > 100):
             return "Error: Python arguments must be a list of at most 100 strings"
         if args is not None and (
@@ -92,7 +95,7 @@ def run_python_file(
         for reader in readers:
             reader.start()
         try:
-            returncode = process.wait(timeout=30)
+            returncode = process.wait(timeout=timeout_seconds)
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
@@ -134,7 +137,7 @@ def run_python_file(
         return "\n".join(output)
 
     except subprocess.TimeoutExpired:
-        return "Error: Python execution timed out after 30 seconds"
+        return f"Error: Python execution timed out after {timeout_seconds} seconds"
     except Exception as e:
         return f"Error: executing Python file: {e}"
 
@@ -157,6 +160,12 @@ schema_run_python_file = {
                     "items": {
                         "type": "string",
                     },
+                },
+                "timeout_seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 120,
+                    "description": "Maximum execution time in seconds (default: 30)",
                 },
             },
             "required": ["file_path"],

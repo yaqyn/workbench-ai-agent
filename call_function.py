@@ -39,7 +39,7 @@ def call_function(tool_call, verbose=False, working_directory=None, read_only=Fa
             if key == "args":
                 if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
                     raise ValueError("args must be an array of strings")
-            elif key in {"start_line", "line_count", "max_entries", "max_results"}:
+            elif key in {"start_line", "line_count", "max_entries", "max_results", "timeout_seconds"}:
                 if type(value) is not int or value < 1:
                     raise ValueError(f"{key} must be a positive integer")
             elif not isinstance(value, str):

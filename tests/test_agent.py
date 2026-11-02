@@ -224,6 +224,17 @@ class ToolTests(unittest.TestCase):
             self.assertIn("timed out", run_python_file(str(self.root), "slow.py"))
         process.kill.assert_called_once()
 
+    def test_python_timeout_can_be_shortened(self):
+        write_file(str(self.root), "slow.py", "pass")
+        process = Mock()
+        process.stdout = io.BytesIO()
+        process.stderr = io.BytesIO()
+        process.wait.side_effect = [subprocess.TimeoutExpired("python", 2), -9]
+        with patch("functions.run_python_file.subprocess.Popen", return_value=process):
+            self.assertIn("after 2 seconds", run_python_file(str(self.root), "slow.py", timeout_seconds=2))
+        process.wait.assert_any_call(timeout=2)
+        self.assertIn("between 1 and 120", run_python_file(str(self.root), "slow.py", timeout_seconds=0))
+
     def test_run_rejects_oversized_arguments_before_starting_process(self):
         write_file(str(self.root), "echo.py", "print('ok')")
         with patch("functions.run_python_file.subprocess.Popen") as run:
