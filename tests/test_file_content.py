@@ -21,6 +21,13 @@ class FileContentRangeTests(unittest.TestCase):
         self.assertEqual(properties["start_line"]["minimum"], 1)
         self.assertEqual(properties["line_count"]["maximum"], 1000)
 
+    def test_can_number_a_selected_line_range(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "notes.txt"
+            path.write_text("one\ntwo\nthree\n")
+            self.assertEqual(get_file_content(directory, "notes.txt", 2, 2, number_lines=True), "2: two\n3: three\n")
+            self.assertIn("boolean", get_file_content(directory, "notes.txt", number_lines="yes"))
+
 
 if __name__ == "__main__":
     unittest.main()
