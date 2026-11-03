@@ -3,15 +3,17 @@ import os
 
 MAX_DIRECTORY_ENTRIES = 200
 
-def get_files_info(working_directory: str, directory: str = ".", max_entries: int = MAX_DIRECTORY_ENTRIES) -> str:
+def get_files_info(working_directory: str, directory: str = ".", max_entries: int = MAX_DIRECTORY_ENTRIES, include_hidden: bool = False) -> str:
     try:
+        if type(include_hidden) is not bool:
+            return "Error: include_hidden must be a boolean"
         if type(max_entries) is not int or max_entries < 1 or max_entries > MAX_DIRECTORY_ENTRIES:
             return f"Error: max_entries must be an integer between 1 and {MAX_DIRECTORY_ENTRIES}"
         target_dir = resolve_path(working_directory, directory)
         if not os.path.isdir(target_dir):
             return f'Error: "{directory}" is not a directory'
         metadata = []
-        names = sorted(os.listdir(target_dir))
+        names = sorted(name for name in os.listdir(target_dir) if include_hidden or not name.startswith("."))
         for name in names[:max_entries]:
             try:
                 relative_path = os.path.relpath(target_dir / name, working_directory)
@@ -44,6 +46,10 @@ schema_get_files_info = {
                     "minimum": 1,
                     "maximum": MAX_DIRECTORY_ENTRIES,
                     "description": "Maximum entries to return (default: 200)",
+                },
+                "include_hidden": {
+                    "type": "boolean",
+                    "description": "Include dot-prefixed entries (default: false)",
                 },
             },
         },

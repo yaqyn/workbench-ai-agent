@@ -83,6 +83,13 @@ class ToolTests(unittest.TestCase):
         self.assertIn("1 more entries omitted", result)
         self.assertIn("between 1 and 200", get_files_info(str(self.root), max_entries=0))
 
+    def test_directory_listing_hides_dotfiles_by_default(self):
+        (self.root / ".env").write_text("secret")
+        (self.root / "visible.txt").write_text("safe")
+        self.assertNotIn(".env", get_files_info(str(self.root)))
+        self.assertIn(".env", get_files_info(str(self.root), include_hidden=True))
+        self.assertIn("boolean", get_files_info(str(self.root), include_hidden="yes"))
+
     def test_python_tool_cannot_consume_the_callers_input(self):
         import sys
         script = self.root / "reader.py"
