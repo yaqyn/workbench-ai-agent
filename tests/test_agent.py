@@ -62,6 +62,13 @@ class ToolTests(unittest.TestCase):
         self.assertIn("Needle needle", result)
         self.assertEqual(search_files(str(self.root), "NEEDLE", case_sensitive=True), "No matches found.")
         self.assertIn("boolean", search_files(str(self.root), "Needle", case_sensitive="yes"))
+
+    def test_literal_search_hides_dotfiles_by_default(self):
+        (self.root / ".env").write_text("needle=secret", encoding="utf-8")
+        (self.root / "visible.txt").write_text("needle=safe", encoding="utf-8")
+        self.assertNotIn(".env", search_files(str(self.root), "needle"))
+        self.assertIn(".env", search_files(str(self.root), "needle", include_hidden=True))
+        self.assertIn("boolean", search_files(str(self.root), "needle", include_hidden="yes"))
     def test_large_directory_listing_is_bounded_and_stably_sorted(self):
         for index in range(205):
             (self.root / f"file-{index:03}.txt").touch()

@@ -8,7 +8,7 @@ MAX_FILES = 1000
 MAX_FILE_BYTES = 1_000_000
 
 
-def search_files(working_directory: str, query: str, directory: str = ".", max_results: int = 20, suffix: str = "", case_sensitive: bool = False) -> str:
+def search_files(working_directory: str, query: str, directory: str = ".", max_results: int = 20, suffix: str = "", case_sensitive: bool = False, include_hidden: bool = False) -> str:
     if not query or len(query) > 200:
         return "Error: query must contain between 1 and 200 characters"
     if type(max_results) is not int or not 1 <= max_results <= MAX_RESULTS:
@@ -17,14 +17,18 @@ def search_files(working_directory: str, query: str, directory: str = ".", max_r
         return "Error: suffix must be a short file extension such as .py"
     if type(case_sensitive) is not bool:
         return "Error: case_sensitive must be a boolean"
+    if type(include_hidden) is not bool:
+        return "Error: include_hidden must be a boolean"
     try:
         root = resolve_path(working_directory, directory)
         if not root.is_dir():
             return f'Error: "{directory}" is not a directory'
         matches, checked = [], 0
         for current, dirs, files in os.walk(root, followlinks=False):
-            dirs[:] = sorted(name for name in dirs if name not in {".git", ".venv", "__pycache__"})
+            dirs[:] = sorted(name for name in dirs if name not in {".git", ".venv", "__pycache__"} and (include_hidden or not name.startswith(".")))
             for name in sorted(files):
+                if not include_hidden and name.startswith("."):
+                    continue
                 if suffix and not name.casefold().endswith(suffix.casefold()):
                     continue
                 if checked >= MAX_FILES or len(matches) >= max_results:
@@ -63,7 +67,8 @@ schema_search_files = {
             "query": {"type": "string"}, "directory": {"type": "string"},
             "max_results": {"type": "integer", "minimum": 1, "maximum": MAX_RESULTS},
             "suffix": {"type": "string", "description": "Optional file extension such as .py"},
-            "case_sensitive": {"type": "boolean", "description": "Match exact letter case when true"}},
+            "case_sensitive": {"type": "boolean", "description": "Match exact letter case when true"},
+            "include_hidden": {"type": "boolean", "description": "Search dot-prefixed files and directories (default: false)"}},
             "required": ["query"]},
     },
 }
