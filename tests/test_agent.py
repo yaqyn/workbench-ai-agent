@@ -90,6 +90,14 @@ class ToolTests(unittest.TestCase):
         self.assertIn("1 more entries omitted", result)
         self.assertIn("between 1 and 200", get_files_info(str(self.root), max_entries=0))
 
+    def test_directory_listing_can_continue_from_an_offset(self):
+        for name in ["alpha.txt", "bravo.txt", "charlie.txt"]:
+            (self.root / name).touch()
+        result = get_files_info(str(self.root), max_entries=1, offset=1)
+        self.assertNotIn("alpha.txt", result)
+        self.assertIn("bravo.txt", result)
+        self.assertIn("offset=2", result)
+
     def test_directory_listing_hides_dotfiles_by_default(self):
         (self.root / ".env").write_text("secret")
         (self.root / "visible.txt").write_text("safe")

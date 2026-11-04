@@ -3,18 +3,20 @@ import os
 
 MAX_DIRECTORY_ENTRIES = 200
 
-def get_files_info(working_directory: str, directory: str = ".", max_entries: int = MAX_DIRECTORY_ENTRIES, include_hidden: bool = False) -> str:
+def get_files_info(working_directory: str, directory: str = ".", max_entries: int = MAX_DIRECTORY_ENTRIES, include_hidden: bool = False, offset: int = 0) -> str:
     try:
         if type(include_hidden) is not bool:
             return "Error: include_hidden must be a boolean"
         if type(max_entries) is not int or max_entries < 1 or max_entries > MAX_DIRECTORY_ENTRIES:
             return f"Error: max_entries must be an integer between 1 and {MAX_DIRECTORY_ENTRIES}"
+        if type(offset) is not int or offset < 0:
+            return "Error: offset must be a nonnegative integer"
         target_dir = resolve_path(working_directory, directory)
         if not os.path.isdir(target_dir):
             return f'Error: "{directory}" is not a directory'
         metadata = []
         names = sorted(name for name in os.listdir(target_dir) if include_hidden or not name.startswith("."))
-        for name in names[:max_entries]:
+        for name in names[offset:offset + max_entries]:
             try:
                 relative_path = os.path.relpath(target_dir / name, working_directory)
                 filepath = resolve_path(working_directory, relative_path)
@@ -23,8 +25,9 @@ def get_files_info(working_directory: str, directory: str = ".", max_entries: in
                 metadata.append(f"- {name}: file_size={file_size} bytes, is_dir={is_dir}")
             except (OSError, ValueError) as error:
                 metadata.append(f"- {name}: Error: {error}")
-        if len(names) > max_entries:
-            metadata.append(f"... {len(names) - max_entries} more entries omitted; list a subdirectory or increase max_entries to narrow the result")
+        remaining = max(0, len(names) - offset - max_entries)
+        if remaining:
+            metadata.append(f"... {remaining} more entries omitted; use offset={offset + max_entries} to continue")
         return "\n".join(metadata)
     except Exception as e:
         return f"Error: {e}"
@@ -50,6 +53,11 @@ schema_get_files_info = {
                 "include_hidden": {
                     "type": "boolean",
                     "description": "Include dot-prefixed entries (default: false)",
+                },
+                "offset": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Skip this many sorted entries before listing",
                 },
             },
         },
