@@ -3,7 +3,7 @@ import os
 
 MAX_DIRECTORY_ENTRIES = 200
 
-def get_files_info(working_directory: str, directory: str = ".", max_entries: int = MAX_DIRECTORY_ENTRIES, include_hidden: bool = False, offset: int = 0) -> str:
+def get_files_info(working_directory: str, directory: str = ".", max_entries: int = MAX_DIRECTORY_ENTRIES, include_hidden: bool = False, offset: int = 0, sort_by: str = "name") -> str:
     try:
         if type(include_hidden) is not bool:
             return "Error: include_hidden must be a boolean"
@@ -11,11 +11,21 @@ def get_files_info(working_directory: str, directory: str = ".", max_entries: in
             return f"Error: max_entries must be an integer between 1 and {MAX_DIRECTORY_ENTRIES}"
         if type(offset) is not int or offset < 0:
             return "Error: offset must be a nonnegative integer"
+        if sort_by not in {"name", "size"}:
+            return "Error: sort_by must be name or size"
         target_dir = resolve_path(working_directory, directory)
         if not os.path.isdir(target_dir):
             return f'Error: "{directory}" is not a directory'
         metadata = []
         names = sorted(name for name in os.listdir(target_dir) if include_hidden or not name.startswith("."))
+        if sort_by == "size":
+            def size_key(name):
+                try:
+                    relative = os.path.relpath(target_dir / name, working_directory)
+                    return (-resolve_path(working_directory, relative).stat().st_size, name.casefold())
+                except (OSError, ValueError):
+                    return (0, name.casefold())
+            names.sort(key=size_key)
         for name in names[offset:offset + max_entries]:
             try:
                 relative_path = os.path.relpath(target_dir / name, working_directory)
@@ -58,6 +68,11 @@ schema_get_files_info = {
                     "type": "integer",
                     "minimum": 0,
                     "description": "Skip this many sorted entries before listing",
+                },
+                "sort_by": {
+                    "type": "string",
+                    "enum": ["name", "size"],
+                    "description": "Order entries by name or largest size first",
                 },
             },
         },

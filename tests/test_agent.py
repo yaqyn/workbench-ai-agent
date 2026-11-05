@@ -98,6 +98,13 @@ class ToolTests(unittest.TestCase):
         self.assertIn("bravo.txt", result)
         self.assertIn("offset=2", result)
 
+    def test_directory_listing_can_sort_largest_files_first(self):
+        (self.root / "small.txt").write_text("x")
+        (self.root / "large.txt").write_text("x" * 20)
+        result = get_files_info(str(self.root), sort_by="size")
+        self.assertLess(result.index("large.txt"), result.index("small.txt"))
+        self.assertIn("sort_by must be name or size", get_files_info(str(self.root), sort_by="random"))
+
     def test_directory_listing_hides_dotfiles_by_default(self):
         (self.root / ".env").write_text("secret")
         (self.root / "visible.txt").write_text("safe")
