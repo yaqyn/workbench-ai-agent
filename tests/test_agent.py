@@ -69,6 +69,14 @@ class ToolTests(unittest.TestCase):
         self.assertNotIn(".env", search_files(str(self.root), "needle"))
         self.assertIn(".env", search_files(str(self.root), "needle", include_hidden=True))
         self.assertIn("boolean", search_files(str(self.root), "needle", include_hidden="yes"))
+
+    def test_literal_search_can_include_neighboring_lines(self):
+        (self.root / "notes.txt").write_text("before\nneedle\nafter\n", encoding="utf-8")
+        result = search_files(str(self.root), "needle", context_lines=1)
+        self.assertIn("notes.txt:1-: before", result)
+        self.assertIn("notes.txt:2: needle", result)
+        self.assertIn("notes.txt:3+: after", result)
+        self.assertIn("between 0 and 3", search_files(str(self.root), "needle", context_lines=4))
     def test_large_directory_listing_is_bounded_and_stably_sorted(self):
         for index in range(205):
             (self.root / f"file-{index:03}.txt").touch()
