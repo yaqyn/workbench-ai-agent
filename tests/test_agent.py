@@ -321,6 +321,26 @@ class ToolTests(unittest.TestCase):
                 self.assertEqual(result["tool_call_id"], "call_1")
                 self.assertTrue(result["content"].startswith("Error:"))
 
+    def test_dispatcher_accepts_typed_optional_tool_arguments(self):
+        (self.root / ".hidden.txt").write_text("Needle\n", encoding="utf-8")
+        (self.root / "notes.txt").write_text("Needle\n", encoding="utf-8")
+
+        listing = call_function(tool("get_files_info", json.dumps({
+            "include_hidden": True, "offset": 0, "sort_by": "size",
+        })), working_directory=self.root)["content"]
+        search = call_function(tool("search_files", json.dumps({
+            "query": "Needle", "case_sensitive": True,
+            "include_hidden": True, "context_lines": 0,
+        })), working_directory=self.root)["content"]
+        refused_write = call_function(tool("write_file", json.dumps({
+            "file_path": "notes.txt", "content": "replacement", "overwrite": False,
+        })), working_directory=self.root)["content"]
+
+        self.assertIn(".hidden.txt", listing)
+        self.assertIn(".hidden.txt:1: Needle", search)
+        self.assertIn("already exists", refused_write)
+        self.assertEqual((self.root / "notes.txt").read_text(), "Needle\n")
+
     def test_read_only_blocks_mutations(self):
         for name in ["write_file", "run_python_file"]:
             self.assertIn("disabled", call_function(tool(name, "{}"), read_only=True)["content"])
