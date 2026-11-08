@@ -41,6 +41,8 @@ def save_transcript(path, history):
             temporary = transcript.name
             json.dump(history, transcript, indent=2, ensure_ascii=False)
             transcript.write("\n")
+            transcript.flush()
+            os.fsync(transcript.fileno())
         if existing_mode is not None:
             os.chmod(temporary, existing_mode)
         os.replace(temporary, path)

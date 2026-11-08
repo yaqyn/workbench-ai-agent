@@ -1,5 +1,6 @@
 import json
 import io
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -354,6 +355,27 @@ class AgentTests(unittest.TestCase):
             save_transcript(path, history)
             self.assertEqual(json.loads(path.read_text()), history)
             self.assertTrue(path.read_text().endswith("\n"))
+
+    def test_transcript_is_flushed_to_disk_before_replacement(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "conversation.json"
+            events = []
+            real_fsync = os.fsync
+            real_replace = os.replace
+
+            def record_fsync(descriptor):
+                events.append("fsync")
+                return real_fsync(descriptor)
+
+            def record_replace(source, destination):
+                self.assertEqual(events, ["fsync"])
+                return real_replace(source, destination)
+
+            with patch("main.os.fsync", side_effect=record_fsync), \
+                 patch("main.os.replace", side_effect=record_replace):
+                save_transcript(path, [{"role": "assistant", "content": "saved"}])
+
+            self.assertEqual(json.loads(path.read_text())[0]["content"], "saved")
 
     def test_transcript_failure_preserves_existing_file(self):
         with tempfile.TemporaryDirectory() as directory:
